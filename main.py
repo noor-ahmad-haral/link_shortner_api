@@ -12,6 +12,10 @@ from config import settings
 import time
 from datetime import datetime
 
+# Import analytics modules
+from analytics.tracker import ClickTracker
+from analytics import analytics_router
+
 app = FastAPI(
     title="URL Shortener API",
     description="""
@@ -106,30 +110,38 @@ def health_check(db: Session = Depends(get_db)):
             }
         )
 
-# Redirect endpoint for short URLs
+# Redirect endpoint for short URLs with advanced analytics tracking
 @app.get("/{short_code}")
-def redirect_to_url(short_code: str, db: Session = Depends(get_db)):
+def redirect_to_url(short_code: str, request: Request, db: Session = Depends(get_db)):
     # Find the link by short_code
     link = db.query(models.ShortLink).filter(models.ShortLink.short_code == short_code).first()
     
     if not link:
         raise HTTPException(status_code=404, detail="Short link not found")
     
-    # Track the click
+    # Track the click with comprehensive analytics
     try:
-        # Increment click count
-        link.click_count += 1
-        # Update last clicked timestamp
-        link.last_clicked = datetime.utcnow()
-        # Update the updated_at timestamp
-        link.updated_at = datetime.utcnow()
+        tracker = ClickTracker(db)
+        click_record = tracker.track_click(request, link)
         
-        # Save changes to database
-        db.commit()
-        db.refresh(link)
+        # If tracking failed, fall back to basic tracking
+        if not click_record:
+            # Basic fallback tracking
+            link.click_count = (link.click_count or 0) + 1
+            link.last_clicked = datetime.utcnow()
+            link.updated_at = datetime.utcnow()
+            db.commit()
+    
     except Exception as e:
-        # If tracking fails, still redirect (don't break user experience)
-        db.rollback()
+        # If tracking fails completely, still redirect (don't break user experience)
+        try:
+            # Minimal tracking fallback
+            link.click_count = (link.click_count or 0) + 1
+            link.last_clicked = datetime.utcnow()
+            db.commit()
+        except:
+            # If even basic tracking fails, just redirect
+            pass
     
     # Redirect to the original URL
     return RedirectResponse(url=link.url, status_code=301)
@@ -137,3 +149,4 @@ def redirect_to_url(short_code: str, db: Session = Depends(get_db)):
 app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(profile.router)
+app.include_router(analytics_router)  # Add analytics routes

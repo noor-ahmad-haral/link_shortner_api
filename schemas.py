@@ -110,9 +110,44 @@ class ShortLinkResponse(BaseModel):
     short_url: str  # The complete short URL users can use
     user_id: Optional[int]
     click_count: int = 0
+    unique_clicks: int = 0  # New field for unique visitor tracking
     last_clicked: Optional[datetime] = None
     created_at: Optional[datetime] = None
     updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True
+
+# Analytics Response Models
+class DeviceStats(BaseModel):
+    device_type: str
+    count: int
+    percentage: float
+
+class GeographicStats(BaseModel):
+    country: str
+    count: int
+    percentage: float
+
+class BrowserStats(BaseModel):
+    browser_name: str
+    count: int
+    percentage: float
+
+class ClickAnalytics(BaseModel):
+    link_id: int
+    period_days: int
+    total_clicks: int
+    unique_clicks: int
+    click_through_rate: float
+    top_countries: List[GeographicStats]
+    top_devices: List[DeviceStats]
+    top_browsers: List[BrowserStats]
+
+class AnalyticsDashboard(BaseModel):
+    user_id: int
+    total_links: int
+    total_clicks: int
+    total_unique_clicks: int
+    average_clicks_per_link: float
+    period_days: int

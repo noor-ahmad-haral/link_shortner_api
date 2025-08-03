@@ -30,8 +30,10 @@ class ShortLink(Base):
     
     # Click tracking fields
     click_count = Column(Integer, default=0, nullable=False)
+    unique_clicks = Column(Integer, default=0, nullable=False)  # New field for unique visitor tracking
     last_clicked = Column(DateTime, nullable=True)
     created_at = Column(DateTime, nullable=True)  # Will be set in the route
     updated_at = Column(DateTime, nullable=True)  # Will be set in the route
 
     owner = relationship("User", back_populates="links")
+    clicks = relationship("LinkClick", back_populates="link", cascade="all, delete-orphan")  # Relationship to detailed clicks

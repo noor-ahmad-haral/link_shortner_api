@@ -6,3 +6,5 @@ python-dotenv
 pydantic[email]
 python-jose[cryptography]
 python-multipart
+user-agents==2.2.0
+requests==2.31.0
