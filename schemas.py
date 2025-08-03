@@ -109,6 +109,10 @@ class ShortLinkResponse(BaseModel):
     short_code: str
     short_url: str  # The complete short URL users can use
     user_id: Optional[int]
+    click_count: int = 0
+    last_clicked: Optional[datetime] = None
+    created_at: Optional[datetime] = None
+    updated_at: Optional[datetime] = None
 
     class Config:
         from_attributes = True

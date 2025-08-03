@@ -10,6 +10,7 @@ import models
 from database import SessionLocal
 from config import settings
 import time
+from datetime import datetime
 
 app = FastAPI(
     title="URL Shortener API",
@@ -22,30 +23,7 @@ app = FastAPI(
     - 📊 **Analytics Ready** - Track clicks and usage
     - 🛡️ **Security** - Rate limiting, input validation, CORS protection
     
-    ### How to Test:
-    1. **Register** a new account at `/auth/register`
-    2. **Login** to get access tokens at `/auth/login` 
-    3. **Click "Authorize"** button and enter your `Bearer <access_token>`
-    4. **Test protected endpoints** like creating/managing links
-    
-    ### Anonymous Features:
-    - Create short links without account
-    - Use generated short links to redirect
-    
-    ### Authenticated Features:
-    - View and manage your links
-    - Update/delete your links
-    - Profile management
     """,
-    version="1.0.0",
-    debug=settings.DEBUG,
-    contact={
-        "name": "URL Shortener API",
-        "email": "support@urlshortener.com",
-    },
-    license_info={
-        "name": "MIT",
-    },
 )
 
 # Security Middleware
@@ -136,6 +114,22 @@ def redirect_to_url(short_code: str, db: Session = Depends(get_db)):
     
     if not link:
         raise HTTPException(status_code=404, detail="Short link not found")
+    
+    # Track the click
+    try:
+        # Increment click count
+        link.click_count += 1
+        # Update last clicked timestamp
+        link.last_clicked = datetime.utcnow()
+        # Update the updated_at timestamp
+        link.updated_at = datetime.utcnow()
+        
+        # Save changes to database
+        db.commit()
+        db.refresh(link)
+    except Exception as e:
+        # If tracking fails, still redirect (don't break user experience)
+        db.rollback()
     
     # Redirect to the original URL
     return RedirectResponse(url=link.url, status_code=301)

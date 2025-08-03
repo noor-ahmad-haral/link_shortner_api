@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Request, status
 from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from typing import Optional, List
+from datetime import datetime
 import string, random
 
 import models
@@ -45,7 +46,11 @@ def get_my_links(
             "url": link.url,
             "short_code": link.short_code,
             "short_url": f"{base_url}/{link.short_code}",
-            "user_id": link.user_id
+            "user_id": link.user_id,
+            "click_count": link.click_count or 0,
+            "last_clicked": link.last_clicked,
+            "created_at": link.created_at,
+            "updated_at": link.updated_at
         })
     
     return response_links
@@ -75,7 +80,10 @@ def create_link(
     new_link = models.ShortLink(
         url=link.url,
         short_code=short_code,
-        user_id=current_user.id if current_user else None
+        user_id=current_user.id if current_user else None,
+        click_count=0,
+        created_at=datetime.utcnow(),
+        updated_at=datetime.utcnow()
     )
 
     db.add(new_link)
@@ -92,7 +100,11 @@ def create_link(
         "url": new_link.url,
         "short_code": new_link.short_code,
         "short_url": short_url,
-        "user_id": new_link.user_id
+        "user_id": new_link.user_id,
+        "click_count": new_link.click_count,
+        "last_clicked": new_link.last_clicked,
+        "created_at": new_link.created_at,
+        "updated_at": new_link.updated_at
     }
 
     return response_data
@@ -163,6 +175,9 @@ def update_link(
         else:
             setattr(link, field, value)
     
+    # Update the updated_at timestamp
+    link.updated_at = datetime.utcnow()
+    
     db.commit()
     db.refresh(link)
     
@@ -176,7 +191,11 @@ def update_link(
         "url": link.url,
         "short_code": link.short_code,
         "short_url": short_url,
-        "user_id": link.user_id
+        "user_id": link.user_id,
+        "click_count": link.click_count or 0,
+        "last_clicked": link.last_clicked,
+        "created_at": link.created_at,
+        "updated_at": link.updated_at
     }
 
     return response_data
@@ -212,7 +231,11 @@ def get_link(
         "url": link.url,
         "short_code": link.short_code,
         "short_url": short_url,
-        "user_id": link.user_id
+        "user_id": link.user_id,
+        "click_count": link.click_count or 0,
+        "last_clicked": link.last_clicked,
+        "created_at": link.created_at,
+        "updated_at": link.updated_at
     }
 
     return response_data
