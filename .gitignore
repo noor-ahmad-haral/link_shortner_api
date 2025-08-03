@@ -1,0 +1,32 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.pdb
+
+# Virtual Environment
+venv/
+env/
+
+# IDEs
+.vscode/
+.idea/
+
+# OS files
+.DS_Store
+
+# Env vars and secrets
+.env
+
+# SQLite database file (optional: if you don't want to track local test DB)
+*.db
+
+# Migrations (if you add Alembic later)
+migrations/
+
+# Pytest cache
+.pytest_cache/
+
+# Logs
+*.log
