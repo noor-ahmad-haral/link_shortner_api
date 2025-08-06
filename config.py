@@ -25,6 +25,6 @@ class Settings:
     DEBUG = os.getenv("DEBUG", "true").lower() == "true"
     
     # CORS
-    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+    ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000,http://127.0.0.1:3000").split(",")
 
 settings = Settings()
