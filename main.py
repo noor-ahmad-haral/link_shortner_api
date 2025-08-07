@@ -151,3 +151,8 @@ app.include_router(auth.router)
 app.include_router(links.router)
 app.include_router(profile.router)
 app.include_router(analytics_router)  # Add analytics routes
+
+if __name__ == "__main__":
+    import uvicorn
+    port = int(os.environ.get("PORT", 8000))
+    uvicorn.run("main:app", host="0.0.0.0", port=port)
